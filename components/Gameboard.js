@@ -36,6 +36,16 @@ export default function Gameboard() {
         }
     }
 
+    const getGameEnd = (i) => {
+        if (board.every((val, i, arr) => val === arr[0])) {
+            console.log('hello')
+            return '#db9833'
+        } else {
+            console.log('hello2')
+            return selectedDicePoints[i] ? 'black' : '#db9833'
+        }
+    }
+
     const row = []
     for (let i = 0; i < NBR_OF_DICES; i++)
         row.push(
@@ -59,13 +69,13 @@ export default function Gameboard() {
             <Text style={[styles.row, {marginLeft: 8}]}>{selectedDicePoints}0</Text>
                         <Pressable
                         key={'number' + i}
-                        onPress={() => getDicePointsTotal()}
+                        onPress={() => selectPoints(i)}
                         >
                             <MaterialCommunityIcons
                                 name={'numeric-' + i + '-circle-outline'}
                                 key={'number' + i}
                                 size={50}
-                                color={'#db9833'}
+                                color={getGameEnd(i)}
                             />
                         </Pressable>
                         </View>
@@ -90,12 +100,18 @@ const checkBonusPoints = () => {
         setStatus('Select your points.')
         //getDicePointsTotal()
     }
-    else if ( nbrOfThrowsLeft === 0 && selectedDices === 0) {
-        setStatus('Select your points before next round.')
-    }
+   
     else if (selectedDicePoints.every(x => x)) {
         setStatus('All points selected.')
     }
+    else if ( nbrOfThrowsLeft === 0) {
+        if (selectedDices === 0) {
+        setStatus('Select your points before next round.')
+        }
+        else {
+        selectDice()
+        }
+    }   
     else {
         setStatus('Throw dices.')
     }
@@ -121,7 +137,7 @@ const selectDice = (i) => {
     dices[i] = selectedDices[i] ? false : true
     setSelectedDices(dices)
     setDicePointsTotal(dices)
-    console.log(dices)
+    //console.log(dices)
 
     /* let selectedSum = dices.reduce((a,b) => a + b, 0)
     console.log(selectedSum)
@@ -130,6 +146,7 @@ const selectDice = (i) => {
 }
 
 const throwDices = () => {
+    // tähän if, jos et ole asettanut pisteitä kolmen heiton jälkeen, älä anna heittaa uudestaan
     let diceSpots = 0
     for (let i = 0; i < NBR_OF_DICES; i++) {
         if (!selectedDices[i]) {
@@ -155,10 +172,14 @@ const getDicePointsTotal = () => {
 }
 //console.log(dicePointsTotal)
 
-const selectPoints = () => {
-    setSelectedDicePoints(selectedDicePoints)
-    console.log(selectedDicePoints)
+const selectPoints = (i) => {
+    let points = [...selectedDicePoints]
+    points[i] = selectedDicePoints[i] ? false : true
+    setSelectedDicePoints(points)
+    console.log(points)
 }
+
+
 
 return (
     <View style={styles.gameboard}>
