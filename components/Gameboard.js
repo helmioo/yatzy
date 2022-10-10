@@ -26,7 +26,7 @@ export default function Gameboard() {
     const [selectedDicePoints, setSelectedDicePoints] = useState(new Array(6).fill(false))
     const [dicePointsTotal, setDicePointsTotal] = useState(new Array(6).fill(0))
 
-    let points = BONUS_POINTS_LIMIT - dicePointsTotal
+    let bonusPoints = BONUS_POINTS_LIMIT - dicePointsTotal
 
     const getDiceColor = (i) => {
         if (board.every((val, i, arr) => val === arr[0])) {
@@ -36,13 +36,13 @@ export default function Gameboard() {
         }
     }
 
-    const getGameEnd = (i) => {
-        if (board.every((val, i, arr) => val === arr[0])) {
+    const getGameEnd = (j) => {
+        if (selectedDicePoints.every((val, j, arr) => val === arr[0])) {
             console.log('hello')
             return '#db9833'
         } else {
             console.log('hello2')
-            return selectedDicePoints[i] ? 'black' : '#db9833'
+            return selectedDicePoints[j] ? 'black' : '#db9833'
         }
     }
 
@@ -63,138 +63,170 @@ export default function Gameboard() {
         )
 
     const numbers = []
-    for (let i = 1; i <= MAX_SPOT; i++) 
+    for (let i = 1; i <= MAX_SPOT; i++)
         numbers.push(
             <View>
-            <Text style={[styles.row, {marginLeft: 8}]}>{selectedDicePoints}0</Text>
-                        <Pressable
+                <Text style={[styles.row, { marginLeft: 8 }]}>{selectedDicePoints}0</Text>
+                <Pressable
+                    key={'number' + i}
+                    onPress={() => selectPoints(i)}
+                >
+                    <MaterialCommunityIcons
+                        name={'numeric-' + i + '-circle-outline'}
                         key={'number' + i}
-                        onPress={() => selectPoints(i)}
-                        >
-                            <MaterialCommunityIcons
-                                name={'numeric-' + i + '-circle-outline'}
-                                key={'number' + i}
-                                size={50}
-                                color={getGameEnd(i)}
-                            />
-                        </Pressable>
-                        </View>
-        )       
+                        size={50}
+                        color={getGameEnd(i)}
+                    />
+                </Pressable>
+            </View>
+        )
 
-useEffect(() => {
-    checkBonusPoints()
-    if (nbrOfThrowsLeft === NBR_OF_THROWS) {
-        setStatus('Throw dices.')
-    }
-    if (nbrOfThrowsLeft < 0) {
-        setNbrOfThrowsLeft(NBR_OF_THROWS - 1)
-    }
-}, [nbrOfThrowsLeft])
+    useEffect(() => {
+        checkBonusPoints()
+        if (nbrOfThrowsLeft === NBR_OF_THROWS) {
+            setStatus('Throw dices.')
+        }
+        if (nbrOfThrowsLeft < 0) {
+            setNbrOfThrowsLeft(NBR_OF_THROWS - 1)
+        }
+    }, [nbrOfThrowsLeft, selectedDices])
 
 
-const checkBonusPoints = () => {
-    if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
-        setStatus('Select and throw again.')
-    }
-    else if (nbrOfThrowsLeft === 0) {
-        setStatus('Select your points.')
-        //getDicePointsTotal()
-    }
-   
-    else if (selectedDicePoints.every(x => x)) {
-        setStatus('All points selected.')
-    }
-    else if ( nbrOfThrowsLeft === 0) {
-        if (selectedDices === 0) {
-        setStatus('Select your points before next round.')
+    const checkBonusPoints = () => {
+        if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
+            setStatus('Select and throw again.')
+        }
+        else if (nbrOfThrowsLeft === 0) {
+            setStatus('Select your points.')
+            //getDicePointsTotal()
+        }
+
+        else if (selectedDicePoints.every(x => x)) {
+            setStatus('All points selected.')
+        }
+        else if (nbrOfThrowsLeft === 0) {
+            if (selectedDices === 0) {
+                setStatus('Select your points before next round.')
+            }
+            else {
+                selectDice()
+            }
         }
         else {
-        selectDice()
-        }
-    }   
-    else {
-        setStatus('Throw dices.')
-    }
-}
-
-/* const checkStatus = () => {
-    if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
-        setStatus('Select and throw again.')
-    }
-    else if (nbrOfThrowsLeft === 0) {
-        setStatus('Select your points.')
-        getDicePointsTotal()
-       
-    }
-    else {
-        setStatus('Throw dices.')
-    }
-} */
-
-
-const selectDice = (i) => {
-    let dices = [...selectedDices]
-    dices[i] = selectedDices[i] ? false : true
-    setSelectedDices(dices)
-    setDicePointsTotal(dices)
-    //console.log(dices)
-
-    /* let selectedSum = dices.reduce((a,b) => a + b, 0)
-    console.log(selectedSum)
-    setDicePointsTotal(selectedSum) */
-
-}
-
-const throwDices = () => {
-    // tähän if, jos et ole asettanut pisteitä kolmen heiton jälkeen, älä anna heittaa uudestaan
-    let diceSpots = 0
-    for (let i = 0; i < NBR_OF_DICES; i++) {
-        if (!selectedDices[i]) {
-            let randomNumber = Math.floor(Math.random() * 6 + 1)
-            board[i] = 'dice-' + randomNumber
-            diceSpots += randomNumber
-            //console.log(randomNumber)
+            setStatus('Throw dices.')
         }
     }
-    setNbrOfThrowsLeft(nbrOfThrowsLeft - 1)
-    setDiceSpots(diceSpots)
-    
-}
 
-const getDicePointsTotal = () => {
-    if (nbrOfThrowsLeft != 0) {
-        setStatus('Throw 3 times before setting points.')
+    //setGameEndStatus('Game over. All points selected.')
+
+    /* const checkStatus = () => {
+        if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
+            setStatus('Select and throw again.')
+        }
+        else if (nbrOfThrowsLeft === 0) {
+            setStatus('Select your points.')
+            getDicePointsTotal()
+           
+        }
+        else {
+            setStatus('Throw dices.')
+        }
+    } */
+
+
+    const selectDice = (i) => {
+        let dices = [...selectedDices]
+        dices[i] = selectedDices[i] ? false : true
+        setSelectedDices(dices)
+        //setDicePointsTotal(dices)
+        //setDiceSpots(dices)
+        //console.log(dices)
+        //console.log(diceSpots)
+
+        /* let selectedSum = dices.reduce((a,b) => a + b, 0)
+        console.log(selectedSum)
+        setDicePointsTotal(selectedSum) */
+
     }
-    else {
-    console.log('hello')
-    return dicePointsTotal.reduce((a, b) => a + b, 0)
+
+    const throwDices = () => {
+        // tähän if, jos et ole asettanut pisteitä kolmen heiton jälkeen, älä anna heittaa uudestaan
+        let diceSpots = 0
+        for (let i = 0; i < NBR_OF_DICES; i++) {
+            if (!selectedDices[i]) {
+                let randomNumber = Math.floor(Math.random() * 6 + 1)
+                board[i] = 'dice-' + randomNumber
+                diceSpots = randomNumber
+                console.log(diceSpots)
+                setDiceSpots(diceSpots)
+            }
+        }
+        setNbrOfThrowsLeft(nbrOfThrowsLeft - 1)
+
+
     }
-}
-//console.log(dicePointsTotal)
 
-const selectPoints = (i) => {
-    let points = [...selectedDicePoints]
-    points[i] = selectedDicePoints[i] ? false : true
-    setSelectedDicePoints(points)
-    console.log(points)
-}
+    const getDicePointsTotal = () => {
+        if (nbrOfThrowsLeft != 0) {
+            setStatus('Throw 3 times before setting points.')
+        }
+        else {
+            //console.log('hello')
+            return dicePointsTotal.reduce((a, b) => a + b, 0)
+        }
+    }
+    //console.log(dicePointsTotal)
+
+    const selectPoints = (i) => {
+        if (nbrOfThrowsLeft != 0) {
+            setStatus('Throw 3 times before setting points.')
+            return
+        }
+        if (!selectedDicePoints[i]) {
+            let points = [...selectedDicePoints]
+            points[i] = selectedDicePoints[i] ? false : true
+
+            let timesShown = 0
+            for (let i = 0; i < board.length; i++) {
+                if (board[i] == value) {
+                    timesShown++
+                    console.log(timesShown)
+                }
+            }
+            setDicePointsTotal(sum)
+            setSelectedDicePoints(points)
+            //console.log(points)
+            //console.log(board.values())
+            // JÄIT TÄHÄN
+            //let filtered = board.filter(numbers[i])
+            //let total = filtered.reduce((a, b) => a + b, 0)
+            //console.log(total)
+        }
+        else {
+            setStatus('You already selected points for ' + i)
+        }
+        /*  else {
+             //console.log('hello')
+             return dicePointsTotal.reduce((a, b) => a + b, 0)
+         } */
+    }
 
 
 
-return (
-    <View style={styles.gameboard}>
-        <View style={[styles.flex, styles.row]}>{row}</View>
-        <Text style={styles.gameinfo}>Throws left: {nbrOfThrowsLeft}</Text>
-        <Text style={styles.gameinfo}>{status}</Text>
-        <Pressable style={styles.button}
-            onPress={() => throwDices()}>
-            <Text style={styles.buttonText}>Throw dices</Text>
-        </Pressable>
-        <Text style={styles.total}>Total: {dicePointsTotal}</Text>
-        <Text style={styles.gameinfo}>You are {points} points away from bonus</Text>
-        <View style={[styles.flex, styles.row]}>{numbers}</View>
-    </View>
-)
+    return (
+        <View style={styles.gameboard}>
+            <View style={[styles.flex, styles.row]}>{row}</View>
+            <Text style={styles.gameinfo}>Throws left: {nbrOfThrowsLeft}</Text>
+            <Text style={styles.gameinfo}>{status}</Text>
+            <Pressable style={styles.button}
+                onPress={() => throwDices()}>
+                <Text style={styles.buttonText}>Throw dices</Text>
+            </Pressable>
+            <Text style={styles.total}>Total: {dicePointsTotal}</Text>
+            <Text style={styles.gameinfo}>You are {bonusPoints} points away from bonus</Text>
+            <View style={[styles.flex, styles.row]}>{numbers}</View>
+        </View>
+    )
 
 
 }
