@@ -38,10 +38,10 @@ export default function Gameboard() {
 
     const getGameEnd = (j) => {
         if (selectedDicePoints.every((val, j, arr) => val === arr[0])) {
-            console.log('hello')
+            //console.log('hello')
             return '#db9833'
         } else {
-            console.log('hello2')
+            //console.log('hello2')
             return selectedDicePoints[j] ? 'black' : '#db9833'
         }
     }
@@ -182,28 +182,37 @@ export default function Gameboard() {
             setStatus('Throw 3 times before setting points.')
             return
         }
-        if (!selectedDicePoints[i]) {
-            let points = [...selectedDicePoints]
-            points[i] = selectedDicePoints[i] ? false : true
+        if (nbrOfThrowsLeft === 0) {
 
-            let timesShown = 0
-            for (let i = 0; i < board.length; i++) {
-                if (board[i] == value) {
-                    timesShown++
-                    console.log(timesShown)
+            if (!selectedDicePoints[i]) {
+                let points = [...selectedDicePoints]
+                points[i] = selectedDicePoints[i] ? false : true
+
+                setSelectedDicePoints(points)
+
+                let sum = [...dicePointsTotal]
+
+                let nbrOfDices = diceSpots.reduce((total, x) => (x === (i + 1) ? total + 1 : total), 0)
+                
+
+                /* let nbrOfDices = 0
+                for (let spot = 0; spot < diceSpots.length; spot++) {
+                    if (diceSpots[spot] === i) {
+                        nbrOfDices++
+                        
+                    }
                 }
+                 */
+                sum[i] = nbrOfDices * (i + 1)
+                setDicePointsTotal(sum)
+                console.log(sum[i])
+                return sum[i]
+    
             }
-            setDicePointsTotal(sum)
-            setSelectedDicePoints(points)
-            //console.log(points)
-            //console.log(board.values())
-            // JÄIT TÄHÄN
-            //let filtered = board.filter(numbers[i])
-            //let total = filtered.reduce((a, b) => a + b, 0)
-            //console.log(total)
-        }
-        else {
-            setStatus('You already selected points for ' + i)
+            else {
+                setStatus('You already selected points for ' + i)
+                return
+            }
         }
         /*  else {
              //console.log('hello')
