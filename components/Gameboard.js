@@ -3,8 +3,6 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import styles from '../style/style'
 import { Pressable, View, Text } from "react-native";
 
-// unselect dices after points have been selected, käänteinen true -false?
-
 let board = []
 const NBR_OF_DICES = 5
 const NBR_OF_THROWS = 3
@@ -20,10 +18,9 @@ export default function Gameboard() {
     const [diceSpots, setDiceSpots] = useState(new Array(NBR_OF_DICES).fill(0))
     const [selectedDicePoints, setSelectedDicePoints] = useState(new Array(6).fill(false))
     const [dicePointsTotal, setDicePointsTotal] = useState(new Array(6).fill(0))
-    const [bonusPoints, setBonusPoints] = useState(BONUS_POINTS_LIMIT)
 
     const getDiceColor = (i) => {
-        if (board.every((val, i, arr) => val === arr[0])) {
+        if (selectedDices.every((val, i, arr) => val === arr[0])) {
             return '#db9833'
         } else {
             return selectedDices[i] ? 'black' : '#db9833'
@@ -32,10 +29,8 @@ export default function Gameboard() {
 
     const getSelectedPoints = (j) => {
         if (selectedDicePoints.every((val, j, arr) => val === arr[0])) {
-            //console.log('hello')
             return '#db9833'
         } else {
-            //console.log('hello2')
             return selectedDicePoints[j] ? 'black' : '#db9833'
         }
     }
@@ -44,12 +39,12 @@ export default function Gameboard() {
     for (let i = 0; i < NBR_OF_DICES; i++)
         row.push(
             <Pressable
-                key={'row' + i}
+                key={'row' + (i)}
                 onPress={() => selectDice(i)}
             >
                 <MaterialCommunityIcons
                     name={board[i]}
-                    key={'row' + i}
+                    key={'row' + (i)}
                     size={60}
                     color={getDiceColor(i)}
                 />
@@ -57,17 +52,17 @@ export default function Gameboard() {
         )
 
     const numbers = []
-    for (let i = 1; i <= MAX_SPOT; i++)
+    for (let i = 0; i < MAX_SPOT; i++)
         numbers.push(
             <View>
                 <Text style={[styles.row, { marginLeft: 8 }]}>{dicePointsTotal[i]}</Text>
                 <Pressable
-                    key={'number' + i}
+                    key={'number' + (i + 1)}
                     onPress={() => selectPoints(i)}
                 >
                     <MaterialCommunityIcons
-                        name={'numeric-' + i + '-circle-outline'}
-                        //key={'number' + i}
+                        name={'numeric-' + (i + 1) + '-circle-outline'}
+                        key={'number' + (i + 1)}
                         size={50}
                         color={getSelectedPoints(i)}
                     />
@@ -76,44 +71,60 @@ export default function Gameboard() {
         )
 
     useEffect(() => {
-        checkStatus()
-        if (nbrOfThrowsLeft === NBR_OF_THROWS) {
+        checkBonusPoints()
+        if (selectedDicePoints.every(x => x)) {
+            setStatus('Game over. All points selected.')
+            setNbrOfThrowsLeft(0)
+        }
+        else if (nbrOfThrowsLeft === NBR_OF_THROWS) {
             setStatus('Throw dices.')
         }
-        if (nbrOfThrowsLeft < 0) {
+        else if (nbrOfThrowsLeft < 0) {
             setNbrOfThrowsLeft(NBR_OF_THROWS - 1)
         }
-    }, [nbrOfThrowsLeft, dicePointsTotal, bonusPoints])
 
-    const checkStatus = () => {
-        setGameEndStatus('You are ' + bonusPoints + ' points away from bonus')
+    }, [nbrOfThrowsLeft, selectedDicePoints])
 
-        if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
+    const checkBonusPoints = () => {
+        if (dicePointsTotal.reduce((a, b) => a + b, 0) > BONUS_POINTS_LIMIT) {
+            setGameEndStatus('You got the bonus!')
+        }
+        else if (nbrOfThrowsLeft < 3 && nbrOfThrowsLeft > 0) {
             setStatus('Select and throw again.')
-            setGameEndStatus('You are ' + bonusPoints + ' points away from bonus')
+            setGameEndStatus('You are ' + (BONUS_POINTS_LIMIT - getDicePointsTotal()) + ' points away from bonus')
         }
         else if (nbrOfThrowsLeft === 0) {
             setStatus('Select your points.')
-            setGameEndStatus('You are ' + bonusPoints + ' points away from bonus')
-        }
-        // TÄÄ EI TOIMI VIELÄ
-        else if (selectedDicePoints.every(x => x)) {
-            setStatus('Game over. All points selected.')
+            setGameEndStatus('You are ' + (BONUS_POINTS_LIMIT - getDicePointsTotal()) + ' points away from bonus')
         }
         else {
             setStatus('Throw dices.')
+            setGameEndStatus('You are ' + (BONUS_POINTS_LIMIT - getDicePointsTotal()) + ' points away from bonus')
         }
     }
 
     const selectDice = (i) => {
-        let dices = [...selectedDices]
-        dices[i] = selectedDices[i] ? false : true
-        setSelectedDices(dices)
+        if (nbrOfThrowsLeft === 3) {
+            setStatus('You have to throw dices first.')
+            return
+        }
+        else {
+            let dices = [...selectedDices]
+            dices[i] = selectedDices[i] ? false : true
+            setSelectedDices(dices)
+        }
     }
 
     const throwDices = () => {
+        // start new game if all points have been selected
+        if (selectedDicePoints.every(x => x)) {
+            setSelectedDicePoints(new Array(6).fill(false))
+            setDicePointsTotal(new Array(6).fill(0))
+            setStatus('Select and throw again.')
+            setNbrOfThrowsLeft(nbrOfThrowsLeft - 1)
+        }
         // check if points have been selected before next round
-        if (nbrOfThrowsLeft === 0) {
+        else if (nbrOfThrowsLeft === 0) {
             setStatus('Select your points before next round.')
         }
         else {
@@ -127,18 +138,6 @@ export default function Gameboard() {
                 }
             }
             setNbrOfThrowsLeft(nbrOfThrowsLeft - 1)
-        }
-    }
-
-    const getGameEndStatus = () => {
-
-        //TÄÄ EI KÄYTÖSSÄ MISSÄÄN VIELÄ
-
-        if (bonusPoints < BONUS_POINTS_LIMIT) {
-            setGameEndStatus('You are ' + bonusPoints + 'points away from bonus')
-        }
-        else if (bonusPoints >= BONUS_POINTS_LIMIT && selectedDicePoints.every() === true) {
-            setGameEndStatus('You got the bonus!')
         }
     }
 
@@ -161,22 +160,18 @@ export default function Gameboard() {
 
                 let nbrOfDices = 0
                 for (let spot = 0; spot < diceSpots.length; spot++) {
-                    if (diceSpots[spot] === 'dice-' + i) {
+                    if (diceSpots[spot] === 'dice-' + (i + 1)) {
                         nbrOfDices++
 
                     }
                 }
-                sum[i] = nbrOfDices * i
+                sum[i] = nbrOfDices * (i + 1)
                 setDicePointsTotal(sum)
-
-                // HOX ONE STEP BEHIND-ONGELMA!
-                let total = [...dicePointsTotal].reduce((a, b) => a + b, 0)
-                let pointsToBonus = BONUS_POINTS_LIMIT - total
-                setBonusPoints(pointsToBonus)
+                setSelectedDices((new Array(NBR_OF_DICES).fill(false)))
             }
             else {
                 // cannot choose same points again
-                setStatus('You already selected points for ' + i)
+                setStatus('You already selected points for ' + (i + 1))
                 return
             }
         }

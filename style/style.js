@@ -57,7 +57,7 @@ export default StyleSheet.create({
     fontSize: 28,
   },
   row: {
-    marginTop: 20,
+    marginTop: 10,
     padding: 10
   },
   flex: {
